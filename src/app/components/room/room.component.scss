@@ -1,0 +1,106 @@
+div {
+  display: flex;
+}
+
+.wrapper {
+  flex-direction: column;
+  height: 100%;
+  position: absolute;
+  padding: 0 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .room-number {
+    opacity: 0.8;
+    font-size: 0.8rem;
+  }
+}
+
+.msg-list {
+  margin: 1rem 0;
+  flex-grow: 1;
+  justify-content: center;
+  height: 300px;
+
+  .message {
+    width: 65%;
+  }
+
+  mat-card-header {
+    justify-content: center;
+  }
+
+  mat-card-content {
+    font-size: inherit;
+  }
+
+  mat-card-actions {
+    justify-content: flex-end;
+    display: flex;
+
+    button {
+      margin: 0 0.5rem;
+    }
+  }
+}
+
+.example-viewport {
+  height: 100%;
+  width: 100%;
+  border: 1px solid black;
+}
+
+.item-container {
+  justify-content: center;
+  margin: 1rem;
+
+  .divider {
+    justify-content: center;
+    border-bottom: 1px solid black;
+    margin-bottom: 1rem;
+  }
+}
+
+.system-message {
+  background: rgb(0 0 0 / 10%);;
+}
+
+.sent-message {
+  justify-content: flex-end;
+
+  mat-card {
+    background: #a9e87a;
+  }
+}
+
+.to-me-message {
+  justify-content: flex-start;
+}
+
+.footer {
+  flex-direction: column;
+  align-items: center;
+  mat-form-field {
+    width: 80%;
+  }
+}
+
+textarea {
+  resize: none;
+}
+
+.footer-actions {
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  width: 100%;
+}

@@ -1,0 +1,29 @@
+div {
+  display: flex;
+}
+
+.wrapper {
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  margin: 0 1rem;
+}
+
+.header {
+  font-size: 2rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+mat-card-header {
+  justify-content: center;
+}
+
+mat-card-content {
+  font-size: inherit;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
