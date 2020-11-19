@@ -2,9 +2,14 @@
   <mat-card>
     <mat-card-header>
       <mat-card-title>
-        欢迎来到心动小屋
+        欢迎来到心动的信号
       </mat-card-title>
+
+      <mat-card-subtitle>
+        Made with ❤️ by 折白
+      </mat-card-subtitle>
     </mat-card-header>
+
     <mat-card-content>
       <form [formGroup]="form">
         <mat-form-field>
@@ -13,7 +18,7 @@
           <mat-error *ngIf="form.controls['roomNumber'].hasError('required')">必填</mat-error>
         </mat-form-field>
 
-        <mat-form-field class="category">
+        <mat-form-field>
           <mat-label>加入身份</mat-label>
           <mat-select formControlName="userRole">
             <mat-option *ngFor="let userRole of userTypes" [value]="userRole.value">
@@ -28,12 +33,19 @@
           <input matInput formControlName="username">
           <mat-error *ngIf="form.controls['username'].hasError('required')">必填</mat-error>
         </mat-form-field>
-
       </form>
     </mat-card-content>
+
     <mat-card-actions>
-      <button mat-raised-button *ngIf="!isHost" [disabled]="form.invalid" (click)="joinRoom()">加入房间</button>
-      <button mat-raised-button *ngIf="isHost" [disabled]="form.invalid" (click)="createRoom()">创建房间</button>
+      <button mat-raised-button color="primary" *ngIf="!isHost"
+              [disabled]="form.invalid || loading" (click)="joinRoom()">
+        {{loading ? '请稍候...' : '加入房间'}}
+<!--        请稍候-->
+        <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+      </button>
+      <button mat-raised-button color="primary" *ngIf="isHost" [disabled]="form.invalid" (click)="createRoom()">
+        创建房间
+      </button>
     </mat-card-actions>
   </mat-card>
 </div>

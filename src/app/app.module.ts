@@ -20,11 +20,17 @@ import {MessageService} from './services/message.service';
 import {MatIconModule} from '@angular/material/icon';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import {MatDividerModule} from '@angular/material/divider';
+import {MatProgressBarModule} from '@angular/material/progress-bar';
+import {DragDropModule} from "@angular/cdk/drag-drop";
+import { ReadMeComponent } from './components/read-me/read-me.component';
+import {MatDialogModule} from "@angular/material/dialog";
+
 @NgModule({
   declarations: [
     AppComponent,
     RoomComponent,
-    LandingComponent
+    LandingComponent,
+    ReadMeComponent
   ],
   imports: [
     BrowserModule,
@@ -40,6 +46,8 @@ import {MatDividerModule} from '@angular/material/divider';
     MatIconModule,
     MatSnackBarModule,
     MatDividerModule,
+    MatProgressBarModule,
+    DragDropModule,
 
     StoreModule.forRoot(ROOT_REDUCERS, {
       runtimeChecks: {
@@ -50,6 +58,7 @@ import {MatDividerModule} from '@angular/material/divider';
       }
     }),
     ScrollingModule,
+    MatDialogModule,
   ],
   providers: [SocketService, MessageService],
   bootstrap: [AppComponent]

@@ -1,6 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {SocketService} from '../../services/socket.service';
+import {MatDialog} from "@angular/material/dialog";
+import {ReadMeComponent} from "../read-me/read-me.component";
 
 @Component({
   selector: 'app-landing',
@@ -11,6 +13,7 @@ export class LandingComponent implements OnInit {
   title = 'heart-signal-client';
 
   form: FormGroup;
+  loading = false;
 
   userTypes = [
     {value: 'player', display: '玩家'},
@@ -24,11 +27,16 @@ export class LandingComponent implements OnInit {
 
   constructor(
     private socketService: SocketService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private dialog: MatDialog,
   ) {
   }
 
   ngOnInit() {
+    this.dialog.open(ReadMeComponent, {
+      disableClose: true,
+    })
+
     this.form = this.formBuilder.group({
       username: new FormControl('', Validators.required),
       roomNumber: new FormControl('', Validators.required),
@@ -47,9 +55,22 @@ export class LandingComponent implements OnInit {
       }
     });
 
+    this.socketService.socket.on('approveAttemptToJoin', () => {
+      this.loading = false;
+    });
+
+    this.socketService.socket.on('alert', () => {
+      this.loading = false;
+    });
+
+    this.socketService.socket.on('disapproveAttemptToJoin', () => {
+      this.loading = false;
+    });
+
   }
 
   joinRoom() {
+    this.loading = true;
     this.socketService.attemptToJoin({
       username: this.formValue.username,
       userRole: this.formValue.userRole,

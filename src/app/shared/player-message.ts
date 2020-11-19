@@ -1,7 +1,5 @@
 export interface PlayerMessage {
   id: string;
-  fromId: string;
-  toId: string;
 
   fromName: string;
   toName: string;

@@ -1,0 +1,27 @@
+<h1 mat-dialog-title>游戏须知</h1>
+<mat-dialog-content class="mat-typography">
+  <p>
+    此网站只是一个为本密室开发的简易工具，请<b>按照主持人指示</b>进行操作。否则游戏将无法正常进行。
+  </p>
+
+  <mat-divider></mat-divider>
+
+  <h3>
+    请<b><u>不要</u></b>进行以下操作
+  </h3>
+  <ul>
+    <li>刷新网页</li>
+    <li>关闭网页</li>
+    <li>退出浏览器</li>
+    <li>寻找网站漏洞（找到我也不改）</li>
+    <li>在多个网页中打开此工具</li>
+  </ul>
+
+  <mat-divider></mat-divider>
+
+  <h3>如果不小心进行了以上操作，请<b>立刻<u>语音告知</u>主持人</b>，不要擅自尝试操作，否则游戏将无法正常进行。</h3>
+
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-raised-button mat-dialog-close color="primary" [disabled]="!canClose">好的</button>
+</mat-dialog-actions>

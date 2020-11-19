@@ -7,7 +7,7 @@ import {Message} from '../../shared/message';
 import {selectAllMessagesByTime} from '../../store/message';
 import {FormControl} from '@angular/forms';
 import {MessageService} from '../../services/message.service';
-import {map, tap} from 'rxjs/operators';
+import {map} from 'rxjs/operators';
 import {v4 as uuidv4} from 'uuid';
 import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
 
@@ -23,7 +23,7 @@ export class RoomComponent implements OnInit {
   usersInRoom: User[];
 
   messageFormControl;
-  toIdControl;
+  toUserControl;
   isFormValid: boolean;
 
   user: User;
@@ -31,6 +31,8 @@ export class RoomComponent implements OnInit {
   currentRound;
   canSendPlayerMessage;
   disapprovedMessageId;
+
+  userRoleDisplay = '';
 
   constructor(
     private socketService: SocketService,
@@ -42,7 +44,7 @@ export class RoomComponent implements OnInit {
   useMockData() {
     this.user = {
       username: '1',
-      userRole: 'host',
+      userRole: 'player',
       roomNumber: '1',
       id: 'M8bmlezxCyL6z5uSAAAf'
     };
@@ -50,8 +52,6 @@ export class RoomComponent implements OnInit {
     this.messages = [
       {
         id: '09c8d442-ba02-4f9a-8f47-c7ca43b10d87',
-        fromId: 'M8bmlezxCyL6z5uSAAAf',
-        toId: 'toId',
         fromName: '1',
         toName: '2',
         content: 'hi 2',
@@ -63,8 +63,6 @@ export class RoomComponent implements OnInit {
       },
       {
         id: '09c8d442-ba02-4f9a-8f47-c7ca43b10d87',
-        fromId: 'M8bmlezxCyL6z5uSAAAf',
-        toId: 'toId',
         fromName: '1',
         toName: '2',
         content: 'hi 2',
@@ -72,7 +70,19 @@ export class RoomComponent implements OnInit {
         published: false,
         approvalStatus: 'approved',
         type: 'playerMessage',
-        roundIndex: 1,
+        roundIndex: 2,
+      },
+
+      {
+        id: 'vdf234143234',
+        fromName: '1',
+        toName: '2',
+        content: 'hi 2',
+        timestamp: 1605585624931,
+        published: false,
+        approvalStatus: 'approved',
+        type: 'playerMessage',
+        roundIndex: 3,
       },
       {
         id: 'asd123123',
@@ -82,19 +92,6 @@ export class RoomComponent implements OnInit {
         type: 'systemMessage',
         actionRequired: true,
       },
-      {
-        id: 'vdf234143234',
-        fromId: 'KXi8nZ85LQHH7zTnAAB4',
-        toId: 'toId',
-        fromName: '1',
-        toName: '2',
-        content: 'hi 2',
-        timestamp: 1605585624931,
-        published: false,
-        approvalStatus: 'approved',
-        type: 'playerMessage',
-        roundIndex: 2,
-      }
     ];
 
     this.usersInRoom = [
@@ -109,13 +106,22 @@ export class RoomComponent implements OnInit {
 
   useRealData() {
     this.user = this.socketService.user;
+
+    if (this.user.userRole === 'player') {
+      this.userRoleDisplay = '玩家'
+    }
+
+    if (this.user.userRole === 'observer') {
+      this.userRoleDisplay = '观众'
+    }
+
     this.roomNumber = this.socketService.getRoomNumber();
 
-    this.messageService.currentRound$.subscribe(currentRound => {
+    this.socketService.currentRound$.subscribe(currentRound => {
       this.currentRound = currentRound;
     });
 
-    this.messageService.canSendPlayerMessage$.subscribe(canSendPlayerMessage => {
+    this.socketService.canSendPlayerMessage$.subscribe(canSendPlayerMessage => {
       this.canSendPlayerMessage = canSendPlayerMessage;
     });
 
@@ -130,10 +136,10 @@ export class RoomComponent implements OnInit {
       }),
     ).subscribe((messages) => {
       this.messages = messages;
-      if (!!this.scrollViewport) {
-        this.scrollViewport.scrollToIndex(this.messages.length - 1);
-
-      }
+      // if (!!this.scrollViewport) {
+      //   this.scrollViewport.scrollToIndex(this.messages.length - 1);
+      //
+      // }
     });
 
     this.socketService.usersInRoom$.pipe(
@@ -151,11 +157,11 @@ export class RoomComponent implements OnInit {
     this.useRealData();
 
     this.messageFormControl = new FormControl();
-    this.toIdControl = new FormControl();
+    this.toUserControl = new FormControl();
 
     combineLatest([
       this.messageFormControl.valueChanges,
-      this.toIdControl.valueChanges
+      this.toUserControl.valueChanges
     ]).subscribe(([message, toId]) => {
       this.isFormValid = !!message && !!toId;
     });
@@ -165,7 +171,7 @@ export class RoomComponent implements OnInit {
     if (message.type === 'playerMessage') {
       this.messageService.hostDisapprovePlayerMessage({...message, approvalStatus: 'disapproved'});
     } else {
-      this.messageService.disapproveAttemptToJoinAsPlayer({...message, approvalStatus: 'disapproved'});
+      this.messageService.disapproveAttemptToJoin({...message, approvalStatus: 'disapproved'});
     }
   }
 
@@ -173,7 +179,7 @@ export class RoomComponent implements OnInit {
     if (message.type === 'playerMessage') {
       this.messageService.hostApprovePlayerMessage({...message, approvalStatus: 'approved'});
     } else {
-      this.messageService.approveAttemptToJoinAsPlayer({...message, approvalStatus: 'approved'});
+      this.messageService.approveAttemptToJoin({...message, approvalStatus: 'approved'});
     }
   }
 
@@ -183,19 +189,17 @@ export class RoomComponent implements OnInit {
 
   edit(message) {
     this.messageFormControl.setValue(message.content);
-    this.toIdControl.setValue(message.toId);
+    this.toUserControl.setValue(message.toName);
     this.disapprovedMessageId = message.id;
-    this.messageService.canSendPlayerMessage$.next(true);
+    // this.socketService.canSendPlayerMessage$.next(true);
   }
 
 
   sendMessage() {
-    const toUser = this.usersInRoom.find(u => u.id === this.toIdControl.value);
+    const toUser = this.usersInRoom.find(u => u.username === this.toUserControl.value);
 
     const message: Message = {
       id: this.disapprovedMessageId || uuidv4(),
-      fromId: this.socketService.user.id,
-      toId: this.toIdControl.value,
 
       fromName: this.user.username,
       toName: toUser.username,
@@ -209,9 +213,9 @@ export class RoomComponent implements OnInit {
     };
 
     this.messageService.playerSendMessageToHost(message);
-    this.messageService.canSendPlayerMessage$.next(false);
+    this.socketService.canSendPlayerMessage$.next(false);
     this.messageFormControl.reset();
-    this.toIdControl.reset();
+    this.toUserControl.reset();
     this.disapprovedMessageId = undefined;
   }
 
@@ -225,6 +229,10 @@ export class RoomComponent implements OnInit {
 
   trackByFn(index: number, item): number {
     return item.id;
+  }
+
+  checkOnline() {
+    this.socketService.socket.emit('sendAlert', ({message: '检查在线'}));
   }
 
 }

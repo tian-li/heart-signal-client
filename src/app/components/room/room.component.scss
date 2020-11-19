@@ -6,7 +6,7 @@ div {
   flex-direction: column;
   height: 100%;
   position: absolute;
-  padding: 0 1rem;
+  padding: 1rem;
   width: 100%;
   box-sizing: border-box;
 }
@@ -30,10 +30,16 @@ div {
   margin: 1rem 0;
   flex-grow: 1;
   justify-content: center;
-  height: 300px;
+  //height: 80%;
 
   .message {
     width: 65%;
+  }
+
+  .divider-text {
+    justify-content: center;
+    font-size: 0.8rem;
+    opacity: 0.7;
   }
 
   mat-card-header {
@@ -55,7 +61,7 @@ div {
 }
 
 .example-viewport {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   border: 1px solid black;
 }
@@ -90,6 +96,7 @@ div {
 .footer {
   flex-direction: column;
   align-items: center;
+
   mat-form-field {
     width: 80%;
   }
@@ -101,6 +108,12 @@ textarea {
 
 .footer-actions {
   justify-content: space-between;
-  margin-bottom: 1rem;
+  //margin-bottom: 1rem;
   width: 100%;
+}
+
+.float-button {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
 }

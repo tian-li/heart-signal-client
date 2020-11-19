@@ -11,26 +11,22 @@ import {
   playerMessageEvent,
   publishPendingMessagesEvent,
   systemMessageApprovedByHostCommand,
-  systemMessagedEvent,
-  systemMessageDisapprovedByHostCommand
+  systemMessagedEvent
 } from '../store/message';
 import {PlayerMessage} from '../shared/player-message';
 import {SystemMessage} from '../shared/system-message';
 import {v4 as uuidv4} from 'uuid';
-import {BehaviorSubject} from 'rxjs';
+import {MatSnackBar} from "@angular/material/snack-bar";
 
 
 @Injectable()
 export class MessageService {
 
-  currentRound$: BehaviorSubject<number> = new BehaviorSubject<number>(0);
-  canSendPlayerMessage$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-
   constructor(
     private socketService: SocketService,
-    private store: Store
+    private store: Store,
+    private snackBar: MatSnackBar
   ) {
-
     this.socketService.socket.on('listPreviousMessages', ({messages}) => {
       this.store.dispatch(listPreviousMessages({messages}));
     });
@@ -46,18 +42,31 @@ export class MessageService {
 
     this.socketService.socket.on('playerMessageDisapprovedByHost', (message) => {
       this.store.dispatch(playerMessageDisapprovedByHostEvent({payload: message}));
+      this.socketService.canSendPlayerMessage$.next(true);
     });
 
     this.socketService.socket.on('publishPendingMessages', (messages) => {
+
+      if (this.socketService.user.userRole === 'host') {
+        this.snackBar.open(
+          '已成功发布消息',
+          '好的',
+          {
+            duration: 2000,
+          }
+        );
+      }
+
       this.store.dispatch(publishPendingMessagesEvent({payload: messages}));
     });
 
     // 有人要以玩家加入
-    this.socketService.socket.on('attemptToJoinAsPlayer', ({id, username, userRole, roomNumber}) => {
+    this.socketService.socket.on('attemptToJoin', ({id, username, userRole, roomNumber}) => {
+      const role = userRole === 'player' ? '玩家' : '观众';
       const message: SystemMessage = {
         id: uuidv4(),
         type: 'systemMessage',
-        content: `${username} 想要作为玩家加入游戏`,
+        content: `${username} 想要作为 ${role} 加入游戏`,
         timestamp: new Date().valueOf(),
         actionRequired: true,
         approvalStatus: 'pending',
@@ -67,15 +76,7 @@ export class MessageService {
       this.store.dispatch(systemMessagedEvent({payload: message}));
     });
 
-    // 短信轮次
-    this.socketService.socket.on('startNewRound', (roundIndex) => {
-      this.currentRound$.next(roundIndex);
-      this.canSendPlayerMessage$.next(true);
-    });
 
-    this.socketService.socket.on('endCurrentRound', () => {
-      this.canSendPlayerMessage$.next(false);
-    });
   }
 
   startNewRound() {
@@ -117,8 +118,8 @@ export class MessageService {
 
 
   // 批准以玩家加入
-  approveAttemptToJoinAsPlayer(message: SystemMessage) {
-    this.socketService.socket.emit('approveAttemptToJoinAsPlayer', {
+  approveAttemptToJoin(message: SystemMessage) {
+    this.socketService.socket.emit('approveAttemptToJoin', {
       user: message.payload,
       roomNumber: this.socketService.getRoomNumber(),
     });
@@ -126,8 +127,8 @@ export class MessageService {
 
   }
 
-  disapproveAttemptToJoinAsPlayer(message: SystemMessage) {
-    this.socketService.socket.emit('disapproveAttemptToJoinAsPlayer', {
+  disapproveAttemptToJoin(message: SystemMessage) {
+    this.socketService.socket.emit('disapproveAttemptToJoin', {
       user: message.payload,
       roomNumber: this.socketService.getRoomNumber(),
     });
