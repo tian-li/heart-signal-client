@@ -22,6 +22,11 @@ mat-card-header {
 mat-card-subtitle, mat-card-title {
   justify-content: center;
   display: flex;
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
 }
 
 mat-card-content {
@@ -29,11 +34,12 @@ mat-card-content {
 }
 
 mat-card-actions {
-    display: flex;
-    justify-content: flex-end;
+  display: flex;
+  justify-content: flex-end;
 
   button {
     mat-progress-bar {
+      clip-path: border-box;
       position: absolute;
       bottom: 0;
       left: 0;

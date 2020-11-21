@@ -6,7 +6,11 @@
       </mat-card-title>
 
       <mat-card-subtitle>
-        Made with ❤️ by 折白
+        <span>Made with ❤️ by 折白</span>
+      </mat-card-subtitle>
+
+      <mat-card-subtitle>
+        <span>Coded with ☕️ by&nbsp;<a href="https://github.com/tian-li/heart-signal-client" target="_blank"> BoBoTea</a></span>
       </mat-card-subtitle>
     </mat-card-header>
 
@@ -29,7 +33,7 @@
         </mat-form-field>
 
         <mat-form-field *ngIf="isPlayer || isObserver">
-          <mat-label>名称</mat-label>
+          <mat-label>名称（请使用微信昵称）</mat-label>
           <input matInput formControlName="username">
           <mat-error *ngIf="form.controls['username'].hasError('required')">必填</mat-error>
         </mat-form-field>
@@ -40,7 +44,6 @@
       <button mat-raised-button color="primary" *ngIf="!isHost"
               [disabled]="form.invalid || loading" (click)="joinRoom()">
         {{loading ? '请稍候...' : '加入房间'}}
-<!--        请稍候-->
         <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
       </button>
       <button mat-raised-button color="primary" *ngIf="isHost" [disabled]="form.invalid" (click)="createRoom()">

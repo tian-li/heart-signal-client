@@ -10,6 +10,7 @@ import {MessageService} from '../../services/message.service';
 import {map} from 'rxjs/operators';
 import {v4 as uuidv4} from 'uuid';
 import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
+import {PlayerMessage} from "../../shared/player-message";
 
 @Component({
   selector: 'app-room',
@@ -19,11 +20,18 @@ import {CdkVirtualScrollViewport} from '@angular/cdk/scrolling';
 export class RoomComponent implements OnInit {
   @ViewChild('scrollViewport') scrollViewport: CdkVirtualScrollViewport;
 
-  messages: Message[];
-  usersInRoom: User[];
+  messages: Message[] = [];
+  usersInRoom: User[] = [];
+  playersInRoom: User[] = [];
+  observersInRoom: User[] = [];
+  otherPlayers: User[] = [];
+  playerDisplayedColumns = ['username', 'connected', 'messageStatus'];
+  observersDisplayedColumns = ['username', 'connected'];
+  socket;
 
   messageFormControl;
   toUserControl;
+  extraMessageUserControl;
   isFormValid: boolean;
 
   user: User;
@@ -33,6 +41,10 @@ export class RoomComponent implements OnInit {
   disapprovedMessageId;
 
   userRoleDisplay = '';
+
+  usersNotSendMessage = [];
+
+  hasPendingApprovalMessage;
 
   constructor(
     private socketService: SocketService,
@@ -44,9 +56,10 @@ export class RoomComponent implements OnInit {
   useMockData() {
     this.user = {
       username: '1',
-      userRole: 'player',
+      userRole: 'host',
       roomNumber: '1',
-      id: 'M8bmlezxCyL6z5uSAAAf'
+      id: 'M8bmlezxCyL6z5uSAAAf',
+      connected: true,
     };
 
     this.messages = [
@@ -94,14 +107,151 @@ export class RoomComponent implements OnInit {
       },
     ];
 
-    this.usersInRoom = [
+    this.observersInRoom = [
       {
         id: 'toId',
         username: '目标',
-        userRole: 'host',
-        roomNumber: '123'
-      }
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+      {
+        id: 'toId',
+        username: '目标',
+        userRole: 'observer',
+        roomNumber: '123',
+        connected: true,
+      },
+
     ];
+
+    this.playersInRoom = this.observersInRoom;
   }
 
   useRealData() {
@@ -136,28 +286,48 @@ export class RoomComponent implements OnInit {
       }),
     ).subscribe((messages) => {
       this.messages = messages;
-      // if (!!this.scrollViewport) {
-      //   this.scrollViewport.scrollToIndex(this.messages.length - 1);
-      //
-      // }
+
+      this.hasPendingApprovalMessage = this.messages.some(m => m.approvalStatus === 'pending');
+
+      if (this.canSendPlayerMessage) {
+        this.findUsersNotSendMessage();
+      }
+
+
     });
 
-    this.socketService.usersInRoom$.pipe(
-      map(users => {
-        return users.filter(user => user.userRole === 'player' && user.id !== this.socketService.user.id);
-      })
-    ).subscribe((users) => {
+    this.socketService.usersInRoom$.subscribe((users) => {
       this.usersInRoom = users;
+      this.observersInRoom = users.filter(user => user.userRole === 'observer');
+      this.playersInRoom = users.filter(user => user.userRole === 'player');
+      this.otherPlayers = this.playersInRoom.filter(user => user.username !== this.user.username);
+    });
+  }
+
+  findUsersNotSendMessage() {
+    this.usersNotSendMessage = [];
+    const usersSentMessage = this.messages.filter((m: Message) => {
+      return m.type === 'playerMessage' && m.roundIndex === this.currentRound
+    }).map((m: PlayerMessage) => {
+      return m.fromName
+    });
+
+    this.playersInRoom.forEach(p => {
+      if (!usersSentMessage.find(u => u === p.username)) {
+        this.usersNotSendMessage.push(p.username)
+      }
     });
   }
 
   ngOnInit(): void {
+    this.socket = this.socketService.socket;
 
     // this.useMockData();
     this.useRealData();
 
     this.messageFormControl = new FormControl();
     this.toUserControl = new FormControl();
+    this.extraMessageUserControl = new FormControl();
 
     combineLatest([
       this.messageFormControl.valueChanges,
@@ -204,7 +374,7 @@ export class RoomComponent implements OnInit {
       fromName: this.user.username,
       toName: toUser.username,
 
-      content: this.messageFormControl.value,
+      content: this.messageFormControl.value.trim(),
       timestamp: new Date().valueOf(),
       published: false,
       approvalStatus: 'pending',
@@ -233,6 +403,29 @@ export class RoomComponent implements OnInit {
 
   checkOnline() {
     this.socketService.socket.emit('sendAlert', ({message: '检查在线'}));
+  }
+
+  messageStatusDisplay(messageStatus: string) {
+    switch (messageStatus) {
+      case 'notStarted':
+        return '未开始';
+      case 'waiting':
+        return '未发送';
+      case 'sent':
+        return '待审核';
+      case 'approved':
+        return '已通过';
+      case 'disapproved':
+        return '已拒绝';
+
+    }
+  }
+
+  giveExtraMessage() {
+    this.socketService.socket.emit('extraMessage', {
+      username: this.extraMessageUserControl.value,
+      roomNumber: this.roomNumber
+    });
   }
 
 }

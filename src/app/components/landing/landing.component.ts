@@ -3,6 +3,7 @@ import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {SocketService} from '../../services/socket.service';
 import {MatDialog} from "@angular/material/dialog";
 import {ReadMeComponent} from "../read-me/read-me.component";
+import {getUserFromLocalStorage} from "../../shared/utils";
 
 @Component({
   selector: 'app-landing',
@@ -33,15 +34,33 @@ export class LandingComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.dialog.open(ReadMeComponent, {
-      disableClose: true,
-    })
+    const hasReadNotice = localStorage.getItem('hasReadNotice');
+
+    if (!hasReadNotice) {
+      this.dialog.open(ReadMeComponent, {
+        disableClose: true,
+      })
+    }
 
     this.form = this.formBuilder.group({
       username: new FormControl('', Validators.required),
       roomNumber: new FormControl('', Validators.required),
       userRole: new FormControl('', Validators.required)
     });
+
+    const localStorageUser = getUserFromLocalStorage();
+
+    if (!!localStorageUser) {
+      this.socketService.autoJoin({...localStorageUser});
+
+      this.isHost = localStorageUser.userRole === 'host';
+      this.isPlayer = localStorageUser.userRole === 'player';
+      this.isObserver = localStorageUser.userRole === 'observer';
+
+      this.form.get('username').setValue(localStorageUser.username)
+      this.form.get('userRole').setValue(localStorageUser.userRole)
+      this.form.get('roomNumber').setValue(localStorageUser.roomNumber)
+    }
 
     this.form.get('userRole').valueChanges.subscribe(selectedRole => {
       this.isHost = selectedRole === 'host';
@@ -66,27 +85,25 @@ export class LandingComponent implements OnInit {
     this.socketService.socket.on('disapproveAttemptToJoin', () => {
       this.loading = false;
     });
-
   }
 
   joinRoom() {
     this.loading = true;
     this.socketService.attemptToJoin({
-      username: this.formValue.username,
+      username: this.formValue.username.trim(),
       userRole: this.formValue.userRole,
-      roomNumber: this.formValue.roomNumber,
+      roomNumber: this.formValue.roomNumber.trim(),
     });
   }
 
   createRoom() {
     this.socketService.createRoom({
-      username: this.formValue.username,
-      roomNumber: this.formValue.roomNumber,
+      username: this.formValue.username.trim(),
+      roomNumber: this.formValue.roomNumber.trim(),
     });
   }
 
   get formValue() {
-    // console.log('form value', this.form.value)
     return this.form.value;
   }
 

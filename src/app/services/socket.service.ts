@@ -5,6 +5,7 @@ import {Router} from '@angular/router';
 import {BehaviorSubject} from 'rxjs';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {environment} from "../../environments/environment";
+import {getUserFromLocalStorage, saveUserToLocalStorage} from "../shared/utils";
 
 @Injectable({
   providedIn: 'root'
@@ -24,8 +25,15 @@ export class SocketService {
   constructor(private router: Router,
               private snackBar: MatSnackBar) {
     this.setupSocketConnection();
-    this.socket.on('disconnect', (user) => {
-      this.socket.io.connect();
+
+    const localStorageUser = getUserFromLocalStorage();
+
+    if(!!localStorageUser) {
+      this.autoJoin({...localStorageUser});
+    }
+
+    this.socket.on('extraMessage', () => {
+      this.canSendPlayerMessage$.next(true);
     });
 
     this.socket.on('alert', (error) => {
@@ -37,10 +45,6 @@ export class SocketService {
         }
       );
     });
-
-    // this.socket.on('newUserJoined', (user) => {
-    //   this.addUserToRoom(user);
-    // });
 
     this.socket.on('approveAttemptToJoin', (user) => {
       this.joinRoom(user);
@@ -60,6 +64,9 @@ export class SocketService {
       this.user = user;
       this.setRoomNumber(user.roomNumber);
       this.router.navigate(['./room']);
+
+
+      saveUserToLocalStorage(user);
 
       if (!!roomInfo) {
         this.currentRound$.next(roomInfo.roundIndex);
@@ -94,6 +101,10 @@ export class SocketService {
 
   joinRoom(user: { userRole: string, roomNumber: string, username?: string }) {
     this.socket.emit('join', user);
+  }
+
+  autoJoin(user: { userRole: string, roomNumber: string, username?: string }) {
+    this.socket.emit('autoJoin', user);
   }
 
   attemptToJoin(user: { userRole: string, roomNumber: string, username?: string }) {
@@ -131,7 +142,7 @@ export class SocketService {
     if(environment.production) {
       this.socket = socketIo.io();
     } else {
-      this.socket = socketIo.io('http://localhost:3000', {
+      this.socket = socketIo.io('http://192.168.0.124:3000', {
         transports: ['websocket']
       });
     }

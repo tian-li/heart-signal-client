@@ -2,11 +2,19 @@ div {
   display: flex;
 }
 
+.container {
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
 .wrapper {
   flex-direction: column;
   height: 100%;
-  position: absolute;
-  padding: 1rem;
+
   width: 100%;
   box-sizing: border-box;
 }
@@ -17,12 +25,35 @@ div {
   align-items: center;
 
   .title {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
   }
 
-  .room-number {
+  .room-status {
     opacity: 0.8;
+    width: 100%;
     font-size: 0.8rem;
+    justify-content: space-evenly;
+  }
+}
+
+.table-container {
+  width: 100%;
+  height: 260px;
+  overflow: auto;
+
+  table {
+    width: 100%;
+  }
+}
+
+.user-list {
+  min-width: 300px;
+  justify-content: space-evenly;
+  margin-right: 1rem;
+  flex-direction: column;
+
+  .extra-message {
+    justify-content: space-between;
   }
 }
 
@@ -30,7 +61,6 @@ div {
   margin: 1rem 0;
   flex-grow: 1;
   justify-content: center;
-  //height: 80%;
 
   .message {
     width: 65%;
@@ -48,6 +78,10 @@ div {
 
   mat-card-content {
     font-size: inherit;
+
+    p {
+      word-wrap: break-word;
+    }
   }
 
   mat-card-actions {
@@ -114,6 +148,6 @@ textarea {
 
 .float-button {
   position: absolute;
-  top: 2rem;
+  top: 5rem;
   right: 2rem;
 }

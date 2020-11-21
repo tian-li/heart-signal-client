@@ -7,13 +7,23 @@ import {Component, OnInit} from '@angular/core';
 })
 export class ReadMeComponent implements OnInit {
   canClose = false;
+  countDown = 10;
 
   constructor() {
   }
 
   ngOnInit(): void {
+    const interval = setInterval(() => {
+      this.countDown--;
+    }, 1000);
+
     setTimeout(() => {
       this.canClose = true;
-    }, 20000);
+      clearInterval(interval);
+    }, this.countDown * 1000);
+  }
+
+  ok() {
+    localStorage.setItem('hasReadNotice', 'true');
   }
 }

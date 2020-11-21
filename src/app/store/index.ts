@@ -1,7 +1,7 @@
-import { InjectionToken } from '@angular/core';
+import {InjectionToken} from '@angular/core';
 import * as fromMessage from './message';
-import { Action, ActionReducer, ActionReducerMap, MetaReducer, } from '@ngrx/store';
-import { environment } from '../../environments/environment';
+import {Action, ActionReducer, ActionReducerMap, MetaReducer,} from '@ngrx/store';
+import {environment} from '../../environments/environment';
 
 export {
   fromMessage,

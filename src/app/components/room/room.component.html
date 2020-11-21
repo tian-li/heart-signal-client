@@ -1,157 +1,249 @@
-<div class="wrapper">
-  <div class="header">
-    <div class="title">{{userRoleDisplay}}{{user.userRole === 'host' ? '主持人' : user.username}}，欢迎来到心动的信号</div>
-    <div class="room-number">
-      <span>房间名：{{roomNumber}}</span>
-    </div>
-    <div class="room-number">
-      <span *ngIf="currentRound > 0">当前是第 {{currentRound}} 轮短信</span>
-      <span *ngIf="currentRound === 0">尚未开始短信轮次</span>
-    </div>
-    <div class="room-number">
-      <span style="min-height: 18px">{{canSendPlayerMessage ? '玩家们正在发送短信...':' '}}</span>
-    </div>
-  </div>
+<div class="container">
+  <div class="user-list" *ngIf="user.userRole === 'host'">
+    <b>玩家列表</b>
+    <div class="table-container">
+      <table mat-table [dataSource]="playersInRoom">
 
-  <!--  短信列表  -->
-  <div class="msg-list">
-    <cdk-virtual-scroll-viewport #scrollViewport itemSize="1" class="example-viewport">
-      <ng-container *cdkVirtualFor="let message of messages;
+        <!--- Note that these columns can be defined in any order.
+              The actual rendered columns are set as a property on the row definition" -->
+
+        <ng-container matColumnDef="username">
+          <th mat-header-cell *matHeaderCellDef> 玩家名</th>
+          <td mat-cell *matCellDef="let element"> {{element.username}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="connected">
+          <th mat-header-cell *matHeaderCellDef> 连接状态</th>
+          <td mat-cell *matCellDef="let element">
+            <div *ngIf="element.connected">
+              <mat-icon style="color: green">link</mat-icon>
+            </div>
+
+            <div *ngIf="!element.connected">
+              <mat-icon style="color: red">link_off</mat-icon>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="messageStatus">
+          <th mat-header-cell *matHeaderCellDef> 消息状态</th>
+          <td mat-cell *matCellDef="let element">
+            {{messageStatusDisplay(element.messageStatus)}}
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="playerDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: playerDisplayedColumns;"></tr>
+      </table>
+    </div>
+    <b>观众列表</b>
+    <div class="table-container">
+      <table mat-table [dataSource]="observersInRoom">
+
+        <!--- Note that these columns can be defined in any order.
+              The actual rendered columns are set as a property on the row definition" -->
+
+        <ng-container matColumnDef="username">
+          <th mat-header-cell *matHeaderCellDef> 观众名</th>
+          <td mat-cell *matCellDef="let element"> {{element.username}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="connected">
+          <th mat-header-cell *matHeaderCellDef> 连接状态</th>
+          <td mat-cell *matCellDef="let element">
+            <div *ngIf="element.connected">
+              <mat-icon style="color: green">link</mat-icon>
+            </div>
+
+            <div *ngIf="!element.connected">
+              <mat-icon style="color: red">link_off</mat-icon>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="observersDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: observersDisplayedColumns;"></tr>
+      </table>
+    </div>
+
+    <div class="extra-message">
+      <mat-form-field>
+        <mat-label>获得额外短信机会</mat-label>
+        <mat-select [formControl]="extraMessageUserControl">
+          <mat-option *ngFor="let user of playersInRoom" [value]="user.username">
+            {{user.username}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" [disabled]="!extraMessageUserControl.value"
+              (click)="giveExtraMessage()">
+        额外短信
+      </button>
+    </div>
+
+  </div>
+  <div class="wrapper">
+    <div class="header">
+      <div class="title">
+        {{userRoleDisplay}}{{user.userRole === 'host' ? '主持人' : user.username}}，欢迎来到心动的信号
+      </div>
+      <div class="room-status">
+        <div>房间名：{{roomNumber}}</div>
+      </div>
+      <div class="room-status">
+        <span *ngIf="currentRound > 0">当前是第 {{currentRound}} 轮短信</span>
+        <span *ngIf="currentRound === 0">尚未开始短信轮次</span>
+      </div>
+      <div class="room-status">
+        <span style="min-height: 18px">{{canSendPlayerMessage ? '玩家们正在发送短信...' : ' '}}</span>
+      </div>
+    </div>
+
+    <!--  短信列表  -->
+    <div class="msg-list">
+      <cdk-virtual-scroll-viewport #scrollViewport itemSize="1" class="example-viewport">
+        <ng-container *cdkVirtualFor="let message of messages;
                            let index = index;
                            let count = count;
                            let first = first;
                            let last = last;
                            let even = even;
                            let odd = odd;
-                           trackBy: trackByFn">
+                           trackBy: trackByFn
+                           ">
 
-        <ng-container
-          *ngIf="user.userRole!=='host' && !first && message.roundIndex !== messages[index - 1]?.roundIndex">
-          <div class="divider-text">第 {{messages[index - 1]?.roundIndex}} 轮短信结束</div>
-          <mat-divider></mat-divider>
-          <div class="divider-text">第 {{message.roundIndex}} 轮短信开始</div>
+          <ng-container
+            *ngIf="user.userRole!=='host' && !first && message.roundIndex !== messages[index - 1]?.roundIndex">
+            <div class="divider-text">第 {{messages[index - 1]?.roundIndex}} 轮短信结束</div>
+            <mat-divider></mat-divider>
+            <div class="divider-text">第 {{message.roundIndex}} 轮短信开始</div>
+          </ng-container>
+
+
+          <div class="item-container"
+               [ngClass]="{'sent-message': message.fromName===user.username,'to-me-message': message.toName===user.username}">
+
+            <mat-card class="message mat-elevation-z5" [ngClass]="{'system-message': message.type === 'systemMessage'}">
+              <mat-card-header>
+                <mat-card-title>
+                  <mat-icon style="color: green"
+                            *ngIf="user.username===message.fromName && message.approvalStatus === 'approved'">
+                    check
+                  </mat-icon>
+                  <mat-icon color="warn"
+                            *ngIf="user.username===message.fromName && message.approvalStatus === 'disapproved'">
+                    warning
+                  </mat-icon>
+
+                  <ng-container *ngIf="message.type === 'playerMessage'">
+                    <span *ngIf="message.toName === user.username">收到的消息</span>
+
+                    <span *ngIf="message.fromName === user.username">我发给 {{message.toName}} 的消息</span>
+
+                    <span *ngIf="user.userRole !== 'player'">{{message.fromName}} 发给 {{message.toName}}</span>
+                  </ng-container>
+
+                  <ng-container *ngIf="message.type === 'systemMessage'">
+                    <span>系统消息</span>
+                  </ng-container>
+
+                </mat-card-title>
+                <mat-card-subtitle *ngIf="message.type === 'playerMessage'">
+                  <span>消息轮次： {{message.roundIndex}}</span>
+                </mat-card-subtitle>
+              </mat-card-header>
+
+              <mat-card-content class="content">
+                <p>
+                  {{message.content}}
+                </p>
+              </mat-card-content>
+
+              <mat-card-actions class="host-action">
+                <button mat-raised-button color="primary"
+                        *ngIf="user.userRole==='host' && message.approvalStatus ==='pending'"
+                        (click)="approve(message)">
+                  批准
+                </button>
+                <button mat-raised-button color="warn"
+                        *ngIf="user.userRole==='host' && message.approvalStatus ==='pending'"
+                        (click)="disapprove(message)">
+                  拒绝
+                </button>
+
+                <button mat-raised-button
+                        [disabled]="true"
+                        *ngIf="user.userRole==='host' && message.approvalStatus ==='approved'">
+                  已批准
+                </button>
+
+                <button mat-raised-button
+                        [disabled]="true"
+                        *ngIf="user.userRole==='host' && message.approvalStatus ==='disapproved'">
+                  已拒绝
+                </button>
+
+                <button mat-raised-button color="primary"
+                        [disabled]="!canSendPlayerMessage"
+                        *ngIf="user.username===message.fromName && message.approvalStatus === 'disapproved'"
+                        (click)="edit(message)">重新编辑
+                </button>
+              </mat-card-actions>
+            </mat-card>
+
+          </div>
         </ng-container>
 
-
-        <div class="item-container"
-             [ngClass]="{'sent-message': message.fromName===user.username,'to-me-message': message.toName===user.username}">
-
-          <mat-card class="message mat-elevation-z5" [ngClass]="{'system-message': message.type === 'systemMessage'}">
-            <mat-card-header>
-              <mat-card-title>
-                <mat-icon style="color: green"
-                          *ngIf="user.username===message.fromName && message.approvalStatus === 'approved'">
-                  check
-                </mat-icon>
-                <mat-icon color="warn"
-                          *ngIf="user.username===message.fromName && message.approvalStatus === 'disapproved'">
-                  warning
-                </mat-icon>
-
-                <ng-container *ngIf="message.type === 'playerMessage'">
-                  <span *ngIf="message.toName === user.username">收到的消息</span>
-
-                  <span *ngIf="message.fromName === user.username">我发给 {{message.toName}} 的消息</span>
-
-                  <span *ngIf="user.userRole !== 'player'">{{message.fromName}} 发给 {{message.toName}}</span>
-                </ng-container>
-
-                <ng-container *ngIf="message.type === 'systemMessage'">
-                  <span>系统消息</span>
-                </ng-container>
-
-              </mat-card-title>
-              <mat-card-subtitle *ngIf="message.type === 'playerMessage'">
-                <span>消息轮次： {{message.roundIndex}}</span>
-              </mat-card-subtitle>
-            </mat-card-header>
-
-            <mat-card-content class="content">
-              <p>
-                {{message.content}}
-              </p>
-            </mat-card-content>
-
-            <mat-card-actions class="host-action">
-              <button mat-raised-button color="primary"
-                      *ngIf="user.userRole==='host' && message.approvalStatus ==='pending'"
-                      (click)="approve(message)">
-                批准
-              </button>
-              <button mat-raised-button color="warn"
-                      *ngIf="user.userRole==='host' && message.approvalStatus ==='pending'"
-                      (click)="disapprove(message)">
-                拒绝
-              </button>
-
-              <button mat-raised-button
-                      [disabled]="true"
-                      *ngIf="user.userRole==='host' && message.approvalStatus ==='approved'">
-                已批准
-              </button>
-
-              <button mat-raised-button
-                      [disabled]="true"
-                      *ngIf="user.userRole==='host' && message.approvalStatus ==='disapproved'">
-                已拒绝
-              </button>
-
-              <button mat-raised-button color="primary"
-                      [disabled]="!canSendPlayerMessage"
-                      *ngIf="user.username===message.fromName && message.approvalStatus === 'disapproved'"
-                      (click)="edit(message)">重新编辑
-              </button>
-            </mat-card-actions>
-          </mat-card>
-
-        </div>
-      </ng-container>
-
-    </cdk-virtual-scroll-viewport>
-  </div>
-
-  <!-- 发送消息 -->
-  <div class="footer">
-    <ng-container *ngIf="user.userRole==='player'">
-      <mat-form-field class="category">
-        <mat-label>发送对象</mat-label>
-        <mat-select [formControl]="toUserControl">
-          <mat-option *ngFor="let user of usersInRoom" [value]="user.username">
-            {{user.username}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field class="amount" appearance="outline">
-        <mat-label>消息</mat-label>
-        <textarea matInput [formControl]="messageFormControl" rows="3"></textarea>
-        <button class="send-button" mat-raised-button matSuffix mat-icon-button color="primary"
-                [disabled]="!isFormValid || !canSendPlayerMessage"
-                *ngIf="user.userRole==='player'" (click)="sendMessage()"
-        >
-          <mat-icon>send</mat-icon>
-        </button>
-      </mat-form-field>
-    </ng-container>
-
-    <div class="footer-actions" *ngIf="user.userRole==='host'">
-      <button mat-raised-button color="accent" [disabled]="canSendPlayerMessage" (click)="publish()">
-        公布消息
-      </button>
-
-      <button mat-raised-button color="primary" *ngIf="!canSendPlayerMessage" (click)="startNewRound()">
-        开始下一轮短信
-      </button>
-      <button mat-raised-button color="warn" *ngIf="canSendPlayerMessage" (click)="endCurrentRound()">
-        结束当前轮次
-      </button>
+      </cdk-virtual-scroll-viewport>
     </div>
 
-  </div>
+    <!-- 发送消息 -->
+    <div class="footer">
+      <ng-container *ngIf="user.userRole==='player'">
+        <mat-form-field>
+          <mat-label>发送对象</mat-label>
+          <mat-select [formControl]="toUserControl">
+            <mat-option *ngFor="let user of otherPlayers" [value]="user.username">
+              {{user.username}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
 
-  <button *ngIf="user.userRole === 'host'" class="float-button" mat-mini-fab (click)="checkOnline()" cdkDrag cdkDragBoundary=".wrapper">
-    <mat-icon>online_prediction</mat-icon>
-  </button>
+        <mat-form-field class="amount" appearance="outline">
+          <mat-label>消息</mat-label>
+          <textarea matInput [formControl]="messageFormControl" rows="3"></textarea>
+          <button class="send-button" mat-raised-button matSuffix mat-icon-button color="primary"
+                  [disabled]="!isFormValid || !canSendPlayerMessage"
+                  *ngIf="user.userRole==='player'" (click)="sendMessage()"
+          >
+            <mat-icon>send</mat-icon>
+          </button>
+        </mat-form-field>
+      </ng-container>
+
+      <div class="footer-actions" *ngIf="user.userRole==='host'">
+        <button mat-raised-button color="accent" [disabled]="canSendPlayerMessage" (click)="publish()">
+          公布消息
+        </button>
+
+        <button mat-raised-button color="primary" *ngIf="!canSendPlayerMessage" (click)="startNewRound()">
+          开始下一轮短信
+        </button>
+        <button mat-raised-button color="warn" [disabled]="hasPendingApprovalMessage" *ngIf="canSendPlayerMessage"
+                (click)="endCurrentRound()">
+          结束当前轮次
+        </button>
+      </div>
+
+    </div>
+
+    <button *ngIf="user.userRole === 'host'" class="float-button" mat-mini-fab (click)="checkOnline()" cdkDrag
+            cdkDragBoundary=".wrapper">
+      <mat-icon>online_prediction</mat-icon>
+    </button>
+
+  </div>
 
 </div>
 

@@ -24,6 +24,7 @@ import {MatProgressBarModule} from '@angular/material/progress-bar';
 import {DragDropModule} from "@angular/cdk/drag-drop";
 import { ReadMeComponent } from './components/read-me/read-me.component';
 import {MatDialogModule} from "@angular/material/dialog";
+import {MatTableModule} from '@angular/material/table';
 
 @NgModule({
   declarations: [
@@ -48,6 +49,7 @@ import {MatDialogModule} from "@angular/material/dialog";
     MatDividerModule,
     MatProgressBarModule,
     DragDropModule,
+    MatTableModule,
 
     StoreModule.forRoot(ROOT_REDUCERS, {
       runtimeChecks: {
