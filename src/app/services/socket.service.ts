@@ -4,8 +4,8 @@ import {User} from '../shared/user';
 import {Router} from '@angular/router';
 import {BehaviorSubject} from 'rxjs';
 import {MatSnackBar} from '@angular/material/snack-bar';
-import {environment} from "../../environments/environment";
-import {getUserFromLocalStorage, saveUserToLocalStorage} from "../shared/utils";
+import {environment} from '../../environments/environment';
+import {clearLocalUser, getUserFromLocalStorage, saveUserToLocalStorage} from '../shared/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -28,9 +28,14 @@ export class SocketService {
 
     const localStorageUser = getUserFromLocalStorage();
 
-    if(!!localStorageUser) {
+    if (!!localStorageUser) {
       this.autoJoin({...localStorageUser});
     }
+
+    this.socket.on('roomClosed', () => {
+      this.socket.disconnect();
+      clearLocalUser();
+    });
 
     this.socket.on('extraMessage', () => {
       this.canSendPlayerMessage$.next(true);
@@ -64,7 +69,6 @@ export class SocketService {
       this.user = user;
       this.setRoomNumber(user.roomNumber);
       this.router.navigate(['./room']);
-
 
       saveUserToLocalStorage(user);
 
@@ -104,7 +108,11 @@ export class SocketService {
   }
 
   autoJoin(user: { userRole: string, roomNumber: string, username?: string }) {
-    this.socket.emit('autoJoin', user);
+    if (user.userRole === 'host') {
+      this.socket.emit('reconnectHost', user);
+    } else {
+      this.socket.emit('autoJoin', user);
+    }
   }
 
   attemptToJoin(user: { userRole: string, roomNumber: string, username?: string }) {
@@ -139,10 +147,10 @@ export class SocketService {
 
   setupSocketConnection() {
 
-    if(environment.production) {
+    if (environment.production) {
       this.socket = socketIo.io();
     } else {
-      this.socket = socketIo.io('http://192.168.0.124:3000', {
+      this.socket = socketIo.io('http://192.168.56.1:3000', {
         transports: ['websocket']
       });
     }

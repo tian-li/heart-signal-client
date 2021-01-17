@@ -23,6 +23,7 @@ div {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
 
   .title {
     font-size: 1.2rem;
@@ -32,7 +33,13 @@ div {
     opacity: 0.8;
     width: 100%;
     font-size: 0.8rem;
-    justify-content: space-evenly;
+    justify-content: center;
+  }
+
+  .menu {
+    position: absolute;
+    left: 0;
+    top: 0;
   }
 }
 

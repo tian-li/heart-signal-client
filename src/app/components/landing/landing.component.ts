@@ -51,7 +51,6 @@ export class LandingComponent implements OnInit {
     const localStorageUser = getUserFromLocalStorage();
 
     if (!!localStorageUser) {
-      this.socketService.autoJoin({...localStorageUser});
 
       this.isHost = localStorageUser.userRole === 'host';
       this.isPlayer = localStorageUser.userRole === 'player';

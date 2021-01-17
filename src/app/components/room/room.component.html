@@ -89,7 +89,11 @@
         {{userRoleDisplay}}{{user.userRole === 'host' ? '主持人' : user.username}}，欢迎来到心动的信号
       </div>
       <div class="room-status">
-        <div>房间名：{{roomNumber}}</div>
+        <div>
+          房间名：{{roomNumber}}
+          <span *ngIf="roomClosed" style="color: red;margin-left: 10px;font-weight: bold;">游戏已结束</span>
+        </div>
+
       </div>
       <div class="room-status">
         <span *ngIf="currentRound > 0">当前是第 {{currentRound}} 轮短信</span>
@@ -97,6 +101,24 @@
       </div>
       <div class="room-status">
         <span style="min-height: 18px">{{canSendPlayerMessage ? '玩家们正在发送短信...' : ' '}}</span>
+      </div>
+      <div class="menu" *ngIf="user.userRole === 'host'">
+        <button mat-icon-button color="accent" [matMenuTriggerFor]="menu">
+          <mat-icon>menu</mat-icon>
+        </button>
+
+        <mat-menu #menu="matMenu">
+          <button mat-menu-item (click)="checkOnline()">
+            <mat-icon color="primary">online_prediction</mat-icon>
+            检查在线
+          </button>
+
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="closeRoom()">
+            <mat-icon color="warn">close</mat-icon>
+            关闭房间并结束游戏
+          </button>
+        </mat-menu>
       </div>
     </div>
 
@@ -237,12 +259,6 @@
       </div>
 
     </div>
-
-    <button *ngIf="user.userRole === 'host'" class="float-button" mat-mini-fab (click)="checkOnline()" cdkDrag
-            cdkDragBoundary=".wrapper">
-      <mat-icon>online_prediction</mat-icon>
-    </button>
-
   </div>
 
 </div>

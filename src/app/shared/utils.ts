@@ -34,6 +34,12 @@ export function getUserFromLocalStorage() {
 
 }
 
+export function clearLocalUser() {
+  localStorage.removeItem('username');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('roomNumber');
+}
+
 function extractValue({value, expireDate}, now) {
 
   if (dayjs(expireDate).isAfter(now)) {

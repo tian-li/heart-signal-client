@@ -33,6 +33,7 @@ export class RoomComponent implements OnInit {
   toUserControl;
   extraMessageUserControl;
   isFormValid: boolean;
+  roomClosed = false;
 
   user: User;
   roomNumber;
@@ -335,6 +336,10 @@ export class RoomComponent implements OnInit {
     ]).subscribe(([message, toId]) => {
       this.isFormValid = !!message && !!toId;
     });
+
+    this.socket.on('roomClosed', () => {
+      this.roomClosed = true;
+    });
   }
 
   disapprove(message: Message) {
@@ -403,6 +408,10 @@ export class RoomComponent implements OnInit {
 
   checkOnline() {
     this.socketService.socket.emit('sendAlert', ({message: '检查在线'}));
+  }
+
+  closeRoom() {
+    this.socketService.socket.emit('closeRoom');
   }
 
   messageStatusDisplay(messageStatus: string) {

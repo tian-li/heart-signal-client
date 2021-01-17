@@ -18,13 +18,14 @@ import {ROOT_REDUCERS} from './store';
 import {SocketService} from './services/socket.service';
 import {MessageService} from './services/message.service';
 import {MatIconModule} from '@angular/material/icon';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
+import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatProgressBarModule} from '@angular/material/progress-bar';
-import {DragDropModule} from "@angular/cdk/drag-drop";
-import { ReadMeComponent } from './components/read-me/read-me.component';
-import {MatDialogModule} from "@angular/material/dialog";
+import {DragDropModule} from '@angular/cdk/drag-drop';
+import {ReadMeComponent} from './components/read-me/read-me.component';
+import {MatDialogModule} from '@angular/material/dialog';
 import {MatTableModule} from '@angular/material/table';
+import {MatMenuModule} from '@angular/material/menu';
 
 @NgModule({
   declarations: [
@@ -50,6 +51,7 @@ import {MatTableModule} from '@angular/material/table';
     MatProgressBarModule,
     DragDropModule,
     MatTableModule,
+    MatMenuModule,
 
     StoreModule.forRoot(ROOT_REDUCERS, {
       runtimeChecks: {
